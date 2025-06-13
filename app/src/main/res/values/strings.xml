@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">mima</string>
+    <string name="usb_tether_tile_label">USB自动共享</string>
+</resources>
