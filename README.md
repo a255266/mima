@@ -4,7 +4,7 @@
 
 ## 项目简介
 
-Mima 是一款基于 Android 平台的可离线密码管理应用，使用 Kotlin 和 Jetpack Compose 构建，采用 Room 作为本地数据库，内置强大的数据加密功能，并支持 WebDAV 云端同步，保障用户密码数据的安全与便捷管理。
+Mima 是一款基于 Android 平台的可离线密码管理应用，使用 Kotlin 和 Jetpack Compose 构建，采用 Room 作为本地数据库，内置强大的数据加密功能，支持离线数据迁移，并支持 WebDAV 云端同步，保障用户密码数据的安全与便捷管理。
 
 ---
 
