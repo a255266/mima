@@ -17,10 +17,9 @@ kotlinxCoroutinesAndroid = "1.10.2"
 kotlinxCoroutinesCore = "1.7.3"
 lifecycleRuntimeKtx = "2.6.1"
 activityCompose = "1.8.0"
-composeBom = "2024.09.00"
+composeBom = "2025.06.00"
 lifecycleRuntimeKtxVersion = "2.8.7"
 lifecycleViewmodelKtx = "2.8.7"
-materialPullrefresh = "1.1.0"
 navigationRuntimeAndroid = "2.9.0-rc01"
 pagingCompose = "3.2.1"
 protoliteWellKnownTypes = "18.0.1"
@@ -41,12 +40,12 @@ androidx-animation = { module = "androidx.compose.animation:animation", version.
 androidx-animation-core = { module = "androidx.compose.animation:animation-core", version.ref = "animation" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "datastorePreferences" }
+androidx-foundation = { module = "androidx.compose.foundation:foundation" }
 androidx-hilt-navigation-compose = { module = "androidx.hilt:hilt-navigation-compose", version.ref = "hiltNavigationCompose" }
 androidx-lifecycle-runtime-ktx-v287 = { module = "androidx.lifecycle:lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtxVersion" }
 androidx-lifecycle-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "lifecycleRuntimeKtx" }
 androidx-lifecycle-runtime-compose = { module = "androidx.lifecycle:lifecycle-runtime-compose", version.ref = "lifecycleViewmodelKtx" }
 androidx-lifecycle-viewmodel-ktx = { module = "androidx.lifecycle:lifecycle-viewmodel-ktx", version.ref = "lifecycleViewmodelKtx" }
-androidx-material-pullrefresh = { module = "androidx.compose.material:material-pullrefresh", version.ref = "materialPullrefresh" }
 androidx-paging-compose = { module = "androidx.paging:paging-compose", version.ref = "pagingCompose" }
 androidx-paging-runtime = { module = "androidx.paging:paging-runtime", version.ref = "pagingCompose" }
 androidx-room-paging = { module = "androidx.room:room-paging", version.ref = "roomPaging" }
@@ -73,6 +72,7 @@ androidx-navigation-compose= { group = "androidx.navigation", name = "navigation
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "kotlinxCoroutinesAndroid" }
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinxCoroutinesCore" }
 protolite-well-known-types = { group = "com.google.firebase", name = "protolite-well-known-types", version.ref = "protoliteWellKnownTypes" }
+#pullrefresh = { module = "dev.materii.pullrefresh:pullrefresh", version.ref = "pullrefresh" }
 room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
 room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
 # 如果库提供 KSP 支持，改用：

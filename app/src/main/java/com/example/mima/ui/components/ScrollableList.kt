@@ -60,6 +60,29 @@ import androidx.compose.animation.core.animateDecay
 import androidx.compose.animation.core.calculateTargetValue
 import androidx.compose.foundation.gestures.ScrollableDefaults
 import kotlin.math.abs
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.overscroll
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.text.BasicText
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.runtime.*
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.input.nestedscroll.*
+import androidx.compose.ui.platform.LocalDensity
+import kotlin.math.roundToInt
+import androidx.compose.animation.core.animate
+import androidx.compose.animation.core.spring
+import androidx.compose.ui.unit.Velocity
+import androidx.compose.animation.core.Spring
+import androidx.compose.foundation.LocalOverscrollConfiguration
+import androidx.compose.foundation.LocalOverscrollFactory
+
 
 // 定义性能监控工具
 //class RecompositionTracker(private val tag: String) {
@@ -93,6 +116,7 @@ fun ScrollableList(
 //    val tracker = LocalRecompositionTracker.current
 //    tracker?.start()
 
+
     val iconImgkey = painterResource(R.drawable.imgkey)
     val scope = rememberCoroutineScope()
 
@@ -114,7 +138,39 @@ fun ScrollableList(
         )
     }
 
+//弹性列表
+    val scrollState = rememberScrollState()
+    var overScrollOffset by remember { mutableStateOf(0f) }
 
+    val nestedScrollConnection = remember {
+        object : NestedScrollConnection {
+            override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
+                // 向下拉动到顶时允许偏移
+                if (scrollState.value == 0 && available.y > 0) {
+                    overScrollOffset += available.y / 2
+                    return available
+                }
+                // 向上滑动到底时允许偏移
+                if (scrollState.value == scrollState.maxValue && available.y < 0) {
+                    overScrollOffset += available.y / 2
+                    return available
+                }
+                return Offset.Zero
+            }
+
+            override suspend fun onPostFling(consumed: Velocity, available: Velocity): Velocity {
+                // 弹回动画
+                animate(
+                    initialValue = overScrollOffset,
+                    targetValue = 0f,
+                    animationSpec = spring(stiffness = Spring.StiffnessMedium)
+                ) { value, _ ->
+                    overScrollOffset = value
+                }
+                return super.onPostFling(consumed, available)
+            }
+        }
+    }
 
 
 
@@ -122,66 +178,69 @@ fun ScrollableList(
     // 🔍 提前获取分页状态
     val isAppending = loginItems.loadState.append is LoadState.Loading
     val appendError = loginItems.loadState.append is LoadState.Error
-    LazyColumn(
-        state = state,
-        modifier = Modifier
-            .fillMaxSize()
-            .navigationBarsPadding(),
-        contentPadding = PaddingValues(top = 10.dp, bottom = 16.dp)
-    ) {
-        items(
-            count = loginItems.itemCount,
-            key = { index -> loginItems[index]?.id ?: index }
-        ) { index ->
-            val data = loginItems[index]
-            if (data != null) {
-                ListItemWithAnimation(
-                    data = data,
-                    index = index,
-                    totalItems = loginItems.itemCount,
-                    iconImgkey = iconImgkey,
-                    navController = navController,
-                    isDeleting = (deletingItemId == data.id),
-                    onLongClick = {
-                        onVibrateClick()
-                        itemToDelete = data
-                    }
-                )
-            }
-        }
+    CompositionLocalProvider(LocalOverscrollFactory provides null) {
+        LazyColumn(
+            state = state,
+            modifier = Modifier
+                .fillMaxSize()
+                .navigationBarsPadding(),
 
-        // 分页加载指示器
-        if (isAppending) {
-            item {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp)
-                        .heightIn(min = 56.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator()
+            contentPadding = PaddingValues(top = 10.dp, bottom = 16.dp)
+        ) {
+            items(
+                count = loginItems.itemCount,
+                key = { index -> loginItems[index]?.id ?: index }
+            ) { index ->
+                val data = loginItems[index]
+                if (data != null) {
+                    ListItemWithAnimation(
+                        data = data,
+                        index = index,
+                        totalItems = loginItems.itemCount,
+                        iconImgkey = iconImgkey,
+                        navController = navController,
+                        isDeleting = (deletingItemId == data.id),
+                        onLongClick = {
+                            onVibrateClick()
+                            itemToDelete = data
+                        }
+                    )
                 }
             }
-        }
 
-        if (appendError) {
-            item {
-                Text(
-                    text = "加载失败，请重试",
-                    color = Color.Red,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    textAlign = TextAlign.Center
-                )
+            // 分页加载指示器
+            if (isAppending) {
+                item {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp)
+                            .heightIn(min = 56.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator()
+                    }
+                }
             }
-        }
 
-        // 始终添加一个 Footer Spacer，用于撑开底部，防止遮挡或“压扁”最后一项
+            if (appendError) {
+                item {
+                    Text(
+                        text = "加载失败，请重试",
+                        color = Color.Red,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        textAlign = TextAlign.Center
+                    )
+                }
+            }
+
+            // 始终添加一个 Footer Spacer，用于撑开底部，防止遮挡或“压扁”最后一项
 //        item {
 //            Spacer(modifier = Modifier.height(80.dp))
 //        }
+        }
     }
 }
 

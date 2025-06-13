@@ -51,6 +51,21 @@ class HomeViewModel @Inject constructor(
     }
 
 
+    private val _isRefreshing = MutableStateFlow(false)
+    val isRefreshing: StateFlow<Boolean> = _isRefreshing
+
+    fun refreshAndSync() {
+        viewModelScope.launch {
+            _isRefreshing.value = true
+            try {
+                dataManager.performSyncIfNeeded()
+            } catch (e: Exception) {
+                Log.e("HomeViewModel", "同步失败", e)
+            } finally {
+                _isRefreshing.value = false
+            }
+        }
+    }
 
 
     fun setSearchActive(active: Boolean) {

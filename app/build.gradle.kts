@@ -50,6 +50,10 @@ android {
         aidl = true
     }
 
+    composeOptions {
+        kotlinCompilerExtensionVersion = "1.5.15" // 重点指定 Compose Compiler 版本
+    }
+
     sourceSets {
         getByName("main") {
             aidl.srcDirs("src/main/aidl")
@@ -106,5 +110,6 @@ dependencies {
     //WebDav相关
     implementation(libs.dav4jvm)
     implementation(libs.androidx.animation.core)
-    implementation(libs.androidx.material.pullrefresh)
+    implementation(libs.androidx.foundation)
+    implementation(libs.androidx.material3)
 }

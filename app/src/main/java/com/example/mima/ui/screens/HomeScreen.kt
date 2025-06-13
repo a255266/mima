@@ -31,7 +31,39 @@ import com.example.mima.ui.components.ScrollableList
 import com.example.mima.ui.components.TopAppBarWithSearch
 import com.example.mima.ui.viewmodels.HomeViewModel
 import androidx.activity.compose.BackHandler
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.paging.compose.collectAsLazyPagingItems
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
+import androidx.compose.ui.input.nestedscroll.*
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.text.BasicText
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.runtime.*
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.input.nestedscroll.*
+import androidx.compose.ui.platform.LocalDensity
+import kotlin.math.roundToInt
+import androidx.compose.animation.core.animate
+import androidx.compose.animation.core.spring
+import androidx.compose.ui.unit.Velocity
+import androidx.compose.animation.core.Spring
+import androidx.compose.foundation.overscroll
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults.Indicator
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults.PositionalThreshold
+import androidx.compose.material3.pulltorefresh.PullToRefreshState
+import androidx.compose.material3.pulltorefresh.pullToRefreshIndicator
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
+import kotlinx.coroutines.launch
+
 
 @Composable
 fun rememberFabVisibleState(
@@ -63,6 +95,7 @@ fun rememberFabVisibleState(
 
 
 //首页
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     navController: NavController,
@@ -71,10 +104,12 @@ fun HomeScreen(
 
 
     val loginItems = viewModel.loginDataPagingFlow.collectAsLazyPagingItems()
-//    var isSearchActive by remember { mutableStateOf(false) }
     val isSearchActive by viewModel.isSearchActive.collectAsState()
     val searchQuery by viewModel.searchQuery.collectAsState()
     val listState = rememberLazyListState()
+
+    val isRefreshing by viewModel.isRefreshing.collectAsState()
+
 
     BackHandler(enabled = isSearchActive) {
         viewModel.setSearchActive(false)
@@ -82,9 +117,9 @@ fun HomeScreen(
     }
 
 
-
     val isExpand by rememberFabVisibleState(listState)
 
+    val pullRefreshState = rememberPullToRefreshState()
 
     Scaffold(
         topBar = {
@@ -115,13 +150,23 @@ fun HomeScreen(
         }
     ) { innerPadding ->
         Box(modifier = Modifier.padding(innerPadding)) {
-            ScrollableList(
-                state = listState,
-                loginItems = loginItems,
-                navController = navController,
-                onDelete = viewModel::deleteItem,
-                onVibrateClick = viewModel::onButtonClick
-            )
+            PullToRefreshBox(
+                isRefreshing = isRefreshing,
+                onRefresh = { viewModel.refreshAndSync() },
+                state = pullRefreshState,
+                modifier = Modifier
+                    .fillMaxSize()
+//                    .nestedScroll(rememberOverscrollNestedScrollConnection())
+            ) {
+                ScrollableList(
+
+                    state = listState,
+                    loginItems = loginItems,
+                    navController = navController,
+                    onDelete = viewModel::deleteItem,
+                    onVibrateClick = viewModel::onButtonClick
+                )
+            }
         }
     }
 }
