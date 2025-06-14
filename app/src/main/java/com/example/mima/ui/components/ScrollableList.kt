@@ -240,6 +240,11 @@ fun ScrollableList(
 //        item {
 //            Spacer(modifier = Modifier.height(80.dp))
 //        }
+            item {
+                Spacer(modifier = Modifier
+                    .fillMaxWidth()
+                    .height(300.dp))
+            }
         }
     }
 }

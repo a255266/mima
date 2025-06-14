@@ -62,7 +62,6 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults.Positional
 import androidx.compose.material3.pulltorefresh.PullToRefreshState
 import androidx.compose.material3.pulltorefresh.pullToRefreshIndicator
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
-import kotlinx.coroutines.launch
 
 
 @Composable
@@ -108,7 +107,6 @@ fun HomeScreen(
     val searchQuery by viewModel.searchQuery.collectAsState()
     val listState = rememberLazyListState()
 
-    val isRefreshing by viewModel.isRefreshing.collectAsState()
 
 
     BackHandler(enabled = isSearchActive) {
@@ -119,7 +117,8 @@ fun HomeScreen(
 
     val isExpand by rememberFabVisibleState(listState)
 
-    val pullRefreshState = rememberPullToRefreshState()
+    val isRefreshing by viewModel.isRefreshing.collectAsState()
+
 
     Scaffold(
         topBar = {
@@ -153,10 +152,7 @@ fun HomeScreen(
             PullToRefreshBox(
                 isRefreshing = isRefreshing,
                 onRefresh = { viewModel.refreshAndSync() },
-                state = pullRefreshState,
-                modifier = Modifier
-                    .fillMaxSize()
-//                    .nestedScroll(rememberOverscrollNestedScrollConnection())
+                modifier = Modifier.fillMaxSize()
             ) {
                 ScrollableList(
 

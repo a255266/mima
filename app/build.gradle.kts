@@ -29,9 +29,12 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = false // 启用 R8 / ProGuard
+            isShrinkResources = false // 启用资源压缩，移除未使用资源
+//            isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -62,7 +65,6 @@ android {
 }
 
 dependencies {
-
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -108,8 +110,13 @@ dependencies {
     //usb相关
     implementation(libs.timber)
     //WebDav相关
-    implementation(libs.dav4jvm)
+//    implementation(libs.dav4jvm)
     implementation(libs.androidx.animation.core)
     implementation(libs.androidx.foundation)
     implementation(libs.androidx.material3)
+    implementation("com.github.bitfireAT:dav4jvm:2.2.1") {
+        exclude(group = "org.ogce", module = "xpp3")
+        exclude(group = "xmlpull", module = "xmlpull")
+        exclude(group = "org.xmlpull", module = "xmlpull")
+    }
 }

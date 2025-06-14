@@ -24,6 +24,9 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import androidx.paging.map
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 
 @OptIn(
     kotlinx.coroutines.FlowPreview::class,
@@ -51,6 +54,8 @@ class HomeViewModel @Inject constructor(
     }
 
 
+    private val _refreshFinishedEvent = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
+    val refreshFinishedEvent = _refreshFinishedEvent.asSharedFlow()
     private val _isRefreshing = MutableStateFlow(false)
     val isRefreshing: StateFlow<Boolean> = _isRefreshing
 
@@ -58,14 +63,20 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch {
             _isRefreshing.value = true
             try {
+                Log.d("HomeViewModel", "开始同步")
                 dataManager.performSyncIfNeeded()
+                Log.d("HomeViewModel", "同步完成")
             } catch (e: Exception) {
                 Log.e("HomeViewModel", "同步失败", e)
             } finally {
+                delay(500)
                 _isRefreshing.value = false
+                Log.d("HomeViewModel", "finally 设置 _isRefreshing = false")
+                _refreshFinishedEvent.emit(Unit) // 通知监听者
             }
         }
     }
+
 
 
     fun setSearchActive(active: Boolean) {

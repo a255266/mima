@@ -30,12 +30,14 @@ import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-
+import com.example.mima.data.WebDavKeys
 
 private const val TRANSFORMATION = "AES/GCM/NoPadding"
 private const val ANDROID_KEYSTORE = "AndroidKeyStore"
 private const val KEY_ALIAS = "MyAppKeyAlias"
 private const val DEFAULT_KEY = "Base64OrObfuscatedKeyHere"
+
+
 
 @Singleton
 class DataManager @Inject constructor(
@@ -62,6 +64,8 @@ class DataManager @Inject constructor(
     val loginDataCache: List<LoginData> get() = _loginDataCache
     private val _cacheState = MutableStateFlow(CacheState.INITIAL)
     val cacheState: StateFlow<CacheState> = _cacheState
+
+
 
     // 数据操作
     suspend fun refreshCache(): Boolean = withContext(Dispatchers.IO) {
@@ -440,7 +444,7 @@ class DataManager @Inject constructor(
         val cloudTimestamp = webDavManager.getLatestBackupFileByName()?.second
         when {
 
-            cloudTimestamp == null -> {
+            cloudTimestamp == null && metadata.lastLocalUpdate != 0L -> {
                 // 云端为null上传
                 val key = settingsData.decryptKey.firstOrNull()
                 if (!key.isNullOrBlank()) {
@@ -456,7 +460,7 @@ class DataManager @Inject constructor(
                         )
                     )
                 }
-                Log.d("AutoSync","云端为null上传")
+                Log.d("AutoSync","云端为null且本地不为0L上传")
             }
 
             cloudTimestamp != null && metadata.lastLocalUpdate > cloudTimestamp -> {
