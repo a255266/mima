@@ -144,44 +144,6 @@ class DataManager @Inject constructor(
 
             // 3. 刷新缓存
             invalidateCache()
-            //上传到云端
-//            val decryptKey = settingsData.decryptKey.first()
-//            if (dbType == DatabaseType.MAIN && savedId != null && operationType != OperationType.IMPORT) {
-//                try {
-//                    val currentTime = System.currentTimeMillis()
-//                    val backupFileName = "backup/auto_backup_${SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date(currentTime))}.json"
-//
-//                    // 上传加密数据到云端
-//                    uploadEncryptedDataToCloud(backupFileName, decryptKey)
-//
-//                    // 更新云同步状态表
-//                    val newMetadata = SyncMetadata(
-//                        id = "singleton",
-//                        lastLocalUpdate = currentTime,
-//                        lastCloudUpdate = currentTime,
-//                        lastSyncTime = currentTime,
-//                        syncStatus = "Success"
-//                    )
-//                    syncMetadataDao.upsert(newMetadata)
-//
-//                } catch (e: Exception) {
-//                    Log.w("DataManager", "自动上传失败: ${e.message}")
-//                    // 更新同步状态为失败
-//                    val failTime = System.currentTimeMillis()
-//                    syncMetadataDao.upsert(
-//                        SyncMetadata(
-//                            id = "singleton",
-//                            lastLocalUpdate = failTime,
-//                            lastCloudUpdate = 0L,
-//                            lastSyncTime = failTime,
-//                            syncStatus = "Pending"
-//                        )
-//                    )
-//                }
-//            }
-
-
-
 //            Log.d("SaveData", "Encryption took: ${System.currentTimeMillis() - start} ms")
             savedId
         } catch (e: Exception) {
@@ -190,10 +152,44 @@ class DataManager @Inject constructor(
         }
     }
 
+//批量保存
+suspend fun saveAllData(
+    dataList: List<LoginData>,
+    dbType: DatabaseType,
+    operationType: OperationType = OperationType.IMPORT
+): Boolean = withContext(Dispatchers.IO) {
+    try {
+        val encryptedList = dataList.map { data ->
+            LoginData(
+                id = 0,
+                projectname = cryptoManager.encryptField(data.projectname),
+                username = cryptoManager.encryptField(data.username),
+                password = cryptoManager.encryptField(data.password),
+                number = cryptoManager.encryptField(data.number),
+                notes = cryptoManager.encryptField(data.notes),
+                customFieldJson = cryptoManager.encryptField(data.customFieldJson),
+                lastModified = if (operationType == OperationType.IMPORT) data.lastModified else System.currentTimeMillis()
+            )
+        }
+
+        if (dbType == DatabaseType.MAIN) {
+            loginDao.insertAll(encryptedList)
+        } else {
+            // 你可以扩展支持 recycle bin 或 history 插入
+            encryptedList.forEach { saveData(it, dbType, operationType) }
+        }
+
+        invalidateCache()
+        true
+    } catch (e: Exception) {
+        Log.e("DataManager", "批量保存失败", e)
+        false
+    }
+}
 
 
 
-// 处理主数据库插入或更新，返回操作后的ID
+    // 处理主数据库插入或更新，返回操作后的ID
     private suspend fun handleMainDatabase(data: LoginData, operationType: OperationType): Long {
         val id = if (data.id == 0L) {
             loginDao.insert(data)  // 返回插入新ID
@@ -331,13 +327,27 @@ class DataManager @Inject constructor(
                 loginDao.delete(loginData)
             }
 
-            // 导入新数据
-            data.forEach { loginData ->
-                saveData(loginData.copy(id = 0), DatabaseType.MAIN, OperationType.IMPORT)
-            }
+//            // 导入新数据
+//            data.forEach { loginData ->
+//                saveData(loginData.copy(id = 0), DatabaseType.MAIN, OperationType.IMPORT)
+//            }
 
+//            data.forEach { loginData ->
+//                val newItem = loginData.copy(id = 0)
+//                saveData(newItem, DatabaseType.MAIN, OperationType.IMPORT)
+//            }
+            // 批量插入：先把id置0，再批量调用insertAll
+            val newDataList = data.map { it.copy(id = 0) }
+
+            // 你自己写的批量加密+插入方法，示例名为 saveAllData
+            val success = saveAllData(newDataList, DatabaseType.MAIN, OperationType.IMPORT)
+
+            // 刷新缓存
             refreshCache()
-            true
+
+            success
+//            refreshCache()
+//            true
         } catch (e: Exception) {
             Log.e("AutoSync", "导入数据失败，原始数据: $input", e)
             throw e

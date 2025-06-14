@@ -8,6 +8,8 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface LoginDao {
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAll(dataList: List<LoginData>)
     @Insert suspend fun insert(data: LoginData): Long
     @Update suspend fun update(data: LoginData)
     @Delete suspend fun delete(data: LoginData)

@@ -66,12 +66,12 @@ fun enterTransitionSpec(
         fromRoute == "settings" || toRoute == "settings" -> EnterTransition.None
         isPop -> slideInHorizontally(
             initialOffsetX = { -(it * 0.2f).toInt() }, // 返回时从左边滑入
-            animationSpec = tween(300)
-        ) + fadeIn(animationSpec = tween(300)) // 加入淡入动画
+            animationSpec = tween(400)
+        ) + fadeIn(animationSpec = tween(200)) // 加入淡入动画
         else -> slideInHorizontally(
             initialOffsetX = { (it * 0.2f).toInt() },  // 正常进入从右边滑入
-            animationSpec = tween(300)
-        ) + fadeIn(animationSpec = tween(300)) // 加入淡入动画
+            animationSpec = tween(400)
+        ) + fadeIn(animationSpec = tween(200)) // 加入淡入动画
     }
 }
 
@@ -89,49 +89,11 @@ fun exitTransitionSpec(
         fromRoute == "home" && toRoute == "settings" -> null
         isPop -> slideOutHorizontally(
             targetOffsetX = { (it * 0.2f).toInt() }, // 返回时向右滑出
-            animationSpec = tween(300)
-        ) + fadeOut(animationSpec = tween(300)) // 加入淡出动画
+            animationSpec = tween(400)
+        ) + fadeOut(animationSpec = tween(200)) // 加入淡出动画
         else -> slideOutHorizontally(
             targetOffsetX = { -(it * 0.2f).toInt() }, // 正常向左滑出
-            animationSpec = tween(300)
-        ) + fadeOut(animationSpec = tween(300)) // 加入淡出动画
+            animationSpec = tween(400)
+        ) + fadeOut(animationSpec = tween(200)) // 加入淡出动画
     }
 }
-
-
-
-
-
-
-
-//@Composable
-//fun AppNavHost(navController: NavHostController) {
-//    NavHost(
-//        navController = navController,
-//        startDestination = "home"
-//    ) {
-//        composable("home") {
-//            HomeScreen(navController = navController)
-//        }
-//
-//
-//// AppNavHost.kt
-//        composable(
-//            "login/{id}",
-//            arguments = listOf(
-//                navArgument("id") {
-//                    type = NavType.LongType
-//                }
-//            )
-//        ) { backStackEntry ->
-//            val id = backStackEntry.arguments?.getLong("id") ?: 0L
-//            LoginScreen(navController, id)
-//        }
-//
-//
-//
-//        composable("settings") {
-//            SettingsScreen(navController = navController)
-//        }
-//    }
-//}

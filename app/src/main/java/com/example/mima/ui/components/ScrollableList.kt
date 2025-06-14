@@ -138,41 +138,6 @@ fun ScrollableList(
         )
     }
 
-//弹性列表
-    val scrollState = rememberScrollState()
-    var overScrollOffset by remember { mutableStateOf(0f) }
-
-    val nestedScrollConnection = remember {
-        object : NestedScrollConnection {
-            override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
-                // 向下拉动到顶时允许偏移
-                if (scrollState.value == 0 && available.y > 0) {
-                    overScrollOffset += available.y / 2
-                    return available
-                }
-                // 向上滑动到底时允许偏移
-                if (scrollState.value == scrollState.maxValue && available.y < 0) {
-                    overScrollOffset += available.y / 2
-                    return available
-                }
-                return Offset.Zero
-            }
-
-            override suspend fun onPostFling(consumed: Velocity, available: Velocity): Velocity {
-                // 弹回动画
-                animate(
-                    initialValue = overScrollOffset,
-                    targetValue = 0f,
-                    animationSpec = spring(stiffness = Spring.StiffnessMedium)
-                ) { value, _ ->
-                    overScrollOffset = value
-                }
-                return super.onPostFling(consumed, available)
-            }
-        }
-    }
-
-
 
 
     // 🔍 提前获取分页状态
@@ -234,16 +199,6 @@ fun ScrollableList(
                         textAlign = TextAlign.Center
                     )
                 }
-            }
-
-            // 始终添加一个 Footer Spacer，用于撑开底部，防止遮挡或“压扁”最后一项
-//        item {
-//            Spacer(modifier = Modifier.height(80.dp))
-//        }
-            item {
-                Spacer(modifier = Modifier
-                    .fillMaxWidth()
-                    .height(300.dp))
             }
         }
     }
@@ -322,6 +277,7 @@ private fun ListItemWithAnimation(
         index == totalItems - 1 -> RoundedCornerShape(bottomStart = 16.dp, bottomEnd = 16.dp)
         else -> RoundedCornerShape(0.dp)
     }
+    val coroutineScope = rememberCoroutineScope()
 
     val modifier = Modifier
         .fillMaxWidth()
@@ -340,7 +296,12 @@ private fun ListItemWithAnimation(
             } else Modifier
         )
         .combinedClickable(
-            onClick = { navController.navigate("login/${data.id}") },
+            onClick = {
+                coroutineScope.launch {
+                    delay(100L)
+                    navController.navigate("login/${data.id}")
+                }
+            },
             onLongClick = onLongClick
         )
 
