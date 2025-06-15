@@ -1,6 +1,8 @@
 # Mima - Android Password Manager
 
-![Mima Logo](./docs/logo.png) <!-- 如果你有项目logo，可以加 -->
+## 项目图标
+
+![Mima Logo](Mima.png)
 
 ## 项目简介
 
