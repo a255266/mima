@@ -196,6 +196,7 @@ class CryptoManager @Inject constructor(
             String(cipher.doFinal(encrypted), Charsets.UTF_8)
         } catch (e: Exception) {
             Log.e(TAG, "密码解密失败", e)
+            SyncStatusBus.update("解密失败，请确认文件是否正确，秘钥与导出时或上一次云同步时是否一致", SyncStatusType.Error)
             throw RuntimeException("解密失败", e)
         }
     }

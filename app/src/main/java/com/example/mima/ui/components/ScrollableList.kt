@@ -80,8 +80,11 @@ import androidx.compose.animation.core.animate
 import androidx.compose.animation.core.spring
 import androidx.compose.ui.unit.Velocity
 import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.LocalOverscrollConfiguration
 import androidx.compose.foundation.LocalOverscrollFactory
+import com.example.mima.data.SyncStatusBus
+import com.example.mima.data.SyncStatusType
 
 
 // 定义性能监控工具
@@ -104,6 +107,7 @@ import androidx.compose.foundation.LocalOverscrollFactory
 //val LocalRecompositionTracker = staticCompositionLocalOf<RecompositionTracker?> { null }
 
 @OptIn(ExperimentalFoundationApi::class)
+
 
 @Composable
 fun ScrollableList(
@@ -139,71 +143,72 @@ fun ScrollableList(
     }
 
 
-
     // 🔍 提前获取分页状态
     val isAppending = loginItems.loadState.append is LoadState.Loading
     val appendError = loginItems.loadState.append is LoadState.Error
     CompositionLocalProvider(LocalOverscrollFactory provides null) {
-        LazyColumn(
-            state = state,
-            modifier = Modifier
-                .fillMaxSize()
-                .navigationBarsPadding(),
+        Column {
+            SyncStatusBanner()
+            LazyColumn(
+                state = state,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .navigationBarsPadding(),
 
-            contentPadding = PaddingValues(top = 10.dp, bottom = 16.dp)
-        ) {
-            items(
-                count = loginItems.itemCount,
-                key = { index -> loginItems[index]?.id ?: index }
-            ) { index ->
-                val data = loginItems[index]
-                if (data != null) {
-                    ListItemWithAnimation(
-                        data = data,
-                        index = index,
-                        totalItems = loginItems.itemCount,
-                        iconImgkey = iconImgkey,
-                        navController = navController,
-                        isDeleting = (deletingItemId == data.id),
-                        onLongClick = {
-                            onVibrateClick()
-                            itemToDelete = data
-                        }
-                    )
-                }
-            }
-
-            // 分页加载指示器
-            if (isAppending) {
-                item {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp)
-                            .heightIn(min = 56.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator()
+                contentPadding = PaddingValues(top = 10.dp, bottom = 16.dp)
+            ) {
+                items(
+                    count = loginItems.itemCount,
+                    key = { index -> loginItems[index]?.id ?: index }
+                ) { index ->
+                    val data = loginItems[index]
+                    if (data != null) {
+                        ListItemWithAnimation(
+                            data = data,
+                            index = index,
+                            totalItems = loginItems.itemCount,
+                            iconImgkey = iconImgkey,
+                            navController = navController,
+                            isDeleting = (deletingItemId == data.id),
+                            onLongClick = {
+                                onVibrateClick()
+                                itemToDelete = data
+                            }
+                        )
                     }
                 }
-            }
 
-            if (appendError) {
-                item {
-                    Text(
-                        text = "加载失败，请重试",
-                        color = Color.Red,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        textAlign = TextAlign.Center
-                    )
+                // 分页加载指示器
+                if (isAppending) {
+                    item {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp)
+                                .heightIn(min = 56.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator()
+                        }
+                    }
+                }
+
+                if (appendError) {
+                    item {
+                        Text(
+                            text = "加载失败，请重试",
+                            color = Color.Red,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            textAlign = TextAlign.Center
+                        )
+                    }
                 }
             }
         }
     }
 }
-
 
 
 
@@ -326,6 +331,70 @@ private fun ListItemWithAnimation(
                 containerColor = Color.Gray.copy(alpha = 0.1f)
             )
         )
+    }
+}
+
+
+@Composable
+fun SyncStatusBanner() {
+    Log.d("Recomposition", "SyncStatusBanner")
+    val syncStatus by SyncStatusBus.statusFlow.collectAsState()
+
+    // 用一个状态存储当前显示的消息，保证动画期间内容不变
+    var currentStatus by remember { mutableStateOf<Pair<String, SyncStatusType>?>(null) }
+
+    // 控制动画显隐
+    var visible by remember { mutableStateOf(false) }
+
+    LaunchedEffect(syncStatus) {
+        if (syncStatus != null) {
+            currentStatus = syncStatus
+            visible = true
+            delay(5000)
+            visible = false
+            // 这里不要立刻清除 currentStatus，让动画播放完毕
+        } else {
+            // 只有当 syncStatus 变成 null 且动画不可见，才清空内容
+            if (!visible) {
+                currentStatus = null
+            }
+        }
+    }
+
+    AnimatedVisibility(
+        visible = visible,
+        enter =fadeIn(animationSpec = tween(durationMillis = 1000)),
+        exit =fadeOut(animationSpec = tween(durationMillis = 1000))
+    ) {
+        syncStatus?.let { (message, type) ->
+            val textColor = when (type) {
+                SyncStatusType.Info -> Color(0xFF2196F3)      // 蓝色
+                SyncStatusType.Success -> Color(0xFF4CAF50)   // 绿色
+                SyncStatusType.Error -> Color(0xFFF44336)     // 红色
+            }
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 8.dp, start = 16.dp, end = 16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = message,
+                    color = textColor,
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.weight(1f) // 让文字占满剩余空间，避免挤压
+                )
+                if (type == SyncStatusType.Info) {
+                    Spacer(modifier = Modifier.width(8.dp))
+                    CircularProgressIndicator(
+                        color = textColor,
+                        strokeWidth = 2.dp,
+                        modifier = Modifier.size(16.dp)
+                    )
+                }
+            }
+        }
     }
 }
 

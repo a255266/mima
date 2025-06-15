@@ -64,16 +64,18 @@ import androidx.compose.material3.pulltorefresh.pullToRefreshIndicator
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import kotlinx.coroutines.delay
 
+
+
 @Composable
-fun rememberFabVisibleState(
+fun ObserveFabVisible(
     listState: LazyListState,
     thresholdPx: Int = 30,
-    ): State<Boolean> {
+    onVisibilityChange: (Boolean) -> Unit
+) {
     val density = LocalDensity.current
     val threshold = with(density) { thresholdPx.dp.toPx() }
 
     var previousScrollOffset by remember { mutableStateOf(0f) }
-    var isVisible by remember { mutableStateOf(true) }
 
     LaunchedEffect(listState) {
         snapshotFlow { listState.firstVisibleItemScrollOffset + listState.firstVisibleItemIndex * 1000 }
@@ -81,15 +83,13 @@ fun rememberFabVisibleState(
                 val delta = currentOffset - previousScrollOffset
                 previousScrollOffset = currentOffset.toFloat()
 
-                if (delta > threshold && isVisible) {
-                    isVisible = false // 向下滑动超过阈值 → 隐藏
-                } else if (delta < -threshold && !isVisible) {
-                    isVisible = true // 向上滑动超过阈值 → 显示
+                if (delta > threshold) {
+                    onVisibilityChange(false)
+                } else if (delta < -threshold) {
+                    onVisibilityChange(true)
                 }
             }
     }
-
-    return rememberUpdatedState(isVisible)
 }
 
 
@@ -101,7 +101,7 @@ fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel()
 ) {
 
-
+    Log.d("Recomposition", "HomeScreen")
     val loginItems = viewModel.loginDataPagingFlow.collectAsLazyPagingItems()
     val isSearchActive by viewModel.isSearchActive.collectAsState()
     val searchQuery by viewModel.searchQuery.collectAsState()
@@ -114,8 +114,9 @@ fun HomeScreen(
         viewModel.setSearchQuery("")
     }
 
+    var isFabVisible by remember { mutableStateOf(true) }
 
-    val isExpand by rememberFabVisibleState(listState)
+    ObserveFabVisible(listState = listState) { isFabVisible = it }
 
     val isRefreshing by viewModel.isRefreshing.collectAsState()
 
@@ -137,7 +138,7 @@ fun HomeScreen(
         },
         floatingActionButton = {
             AddButton(
-                isExpand = isExpand,
+                isExpand = isFabVisible,
                 onClick = {
                     viewModel.onButtonClick()
                     navController.navigate("login/0") // 跳转到新增编辑页

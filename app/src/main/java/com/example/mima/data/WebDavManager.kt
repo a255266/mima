@@ -164,24 +164,26 @@ class WebDavManager @Inject constructor(
         }
     }
 
+
     suspend fun getLatestBackupFileByName(): Pair<String, Long>? = withContext(Dispatchers.IO) {
+//        Log.d("AutoSync", "调用 performSyncIfNeeded")
         try {
             val backupResource = createResource("backup/")
 
             suspendCancellableCoroutine<Pair<String, Long>?> { cont ->
                 val resultList = mutableListOf<Pair<String, Long>>()
-//                Log.d("WebDAV", "开始执行 PROPFIND 请求")
+                Log.d("WebDAV", "开始执行 PROPFIND 请求")
                 backupResource.propfind(1) { response , hrefRelation ->
                     val href = response.href ?: return@propfind
                     val name = href.toString().substringAfterLast("/")
-//                    Log.d("WebDAV", "发现文件: $name")
+                    Log.d("WebDAV", "发现文件: $name")
                     if (name.startsWith("backup_") && name.endsWith(".json")) {
                         val timestampStr = name.removePrefix("backup_").removeSuffix(".json")
                         val timestamp = timestampStr.toLongOrNull()
-//                        Log.d("WebDAV", "尝试解析时间戳: $timestampStr -> $timestamp")
+                        Log.d("WebDAV", "尝试解析时间戳: $timestampStr -> $timestamp")
                         if (timestamp != null) {
                             resultList += name to timestamp
-//                            Log.d("WebDAV", "匹配到备份文件: $name -> $timestamp")
+                            Log.d("WebDAV", "匹配到备份文件: $name -> $timestamp")
                         }
                     }
                 }
