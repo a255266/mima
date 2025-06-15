@@ -350,16 +350,21 @@ fun SyncStatusBanner() {
         if (syncStatus != null) {
             currentStatus = syncStatus
             visible = true
-            delay(5000)
-            visible = false
-            // 这里不要立刻清除 currentStatus，让动画播放完毕
+            // 只有非 Info 状态才自动隐藏
+            if (syncStatus!!.second != SyncStatusType.Info) {
+                delay(5000)
+                visible = false
+                delay(1000) // 给动画时间
+                SyncStatusBus.clear()
+                currentStatus = null
+            }
         } else {
-            // 只有当 syncStatus 变成 null 且动画不可见，才清空内容
             if (!visible) {
                 currentStatus = null
             }
         }
     }
+
 
     AnimatedVisibility(
         visible = visible,

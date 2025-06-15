@@ -397,6 +397,7 @@ suspend fun saveAllData(
             tempFile.delete()
 
             val importResult = importDataWithKey(password, content)
+            Log.e("AutoSync", "下载失败: $importResult")
             if (importResult) {
                 SyncStatusBus.update("数据导入成功", SyncStatusType.Success)
             } else {
@@ -491,6 +492,7 @@ suspend fun saveAllData(
         SyncStatusBus.update("正在检测本地与云端数据是否一致", SyncStatusType.Info)
         val metadata = syncMetadataDao.getMetadata() ?: return@withContext
         val cloudTimestamp = webDavManager.getLatestBackupFileByName()?.second
+        Log.d("AutoSync", "云端数据为：$cloudTimestamp 本地数据为 $metadata.lastLocalUpdate")
         if (cloudTimestamp != null) {
             when {
 
@@ -555,12 +557,12 @@ suspend fun saveAllData(
                         SyncStatusType.Info
                     )
                     // 云端比本地新 → 下载并导入
+                    Log.d("AutoSync", "云端比本地新 → 下载并导入")
                     val key = settingsData.decryptKey.firstOrNull()
                     if (!key.isNullOrBlank()) {
                         val fileName = "backup/backup_${cloudTimestamp}.json"
-
                         val success = downloadAndImportFromCloud(fileName, key)
-
+                        Log.d("AutoSync", "success")
                         if (success) {
                             syncMetadataDao.upsert(
                                 metadata.copy(
@@ -572,7 +574,6 @@ suspend fun saveAllData(
                             SyncStatusBus.update("导入成功", SyncStatusType.Success)
                         }
                     }
-                    Log.d("AutoSync", "云端比本地新 → 下载并导入")
                 }
 
                 else -> {
