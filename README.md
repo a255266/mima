@@ -1,5 +1,7 @@
 # Mima - Android Password Manager
 
+## 项目图标
+
 ![Mima Logo](Mima.png)
 
 ## 项目简介
