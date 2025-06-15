@@ -1,6 +1,7 @@
 # Mima - Android Password Manager
 
-![Mima Logo](./docs/logo.png) <!-- 如果你有项目logo，可以加 -->
+![Mima Logo](./app/src/main/res/mipmap-hdpi
+/ic_launcher_round.webp) <!-- 如果你有项目logo，可以加 -->
 
 ## 项目简介
 
