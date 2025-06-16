@@ -66,6 +66,12 @@ class DataManager @Inject constructor(
     val cacheState: StateFlow<CacheState> = _cacheState
 
 
+    @Volatile
+    private var skipNextAutoBackup = false
+
+    fun markSkipNextAutoBackup() {
+        skipNextAutoBackup = true
+    }
 
     // 数据操作
     suspend fun refreshCache(): Boolean = withContext(Dispatchers.IO) {
@@ -317,7 +323,7 @@ suspend fun saveAllData(
         }
     }
 
-    suspend fun importDataWithKey(password: String?, input: String): Boolean = withContext(Dispatchers.IO) {
+    suspend fun importDataWithKey(remotePath: Long?,password: String?, input: String): Boolean = withContext(Dispatchers.IO) {
         try {
             // 尝试解析外层结构
             val jsonObject = JsonParser.parseString(input).asJsonObject
@@ -330,7 +336,7 @@ suspend fun saveAllData(
             } else {
                 DEFAULT_KEY
             }
-
+            Log.d("AutoSync", "导入时间戳: $remotePath")
             val decrypted = cryptoManager.decryptWithPassword(encrypted, actualPassword)
             val data = Gson().fromJson(decrypted, Array<LoginData>::class.java).toList()
             Log.d("AutoSync", "导入数据原文: $input")
@@ -342,8 +348,16 @@ suspend fun saveAllData(
 
             val newDataList = data.map { it.copy(id = 0) }
 
-            // 你自己写的批量加密+插入方法，示例名为 saveAllData
+            // 批量加密+插入方法
             val success = saveAllData(newDataList, DatabaseType.MAIN, OperationType.IMPORT)
+
+            // 写入同步元数据（导入时间戳）
+            val metadata = SyncMetadata(
+                id = "singleton",
+                lastLocalUpdate = remotePath ?: System.currentTimeMillis(),
+            )
+            markSkipNextAutoBackup()
+            syncMetadataDao.upsert(metadata)
 
             // 刷新缓存
             refreshCache()
@@ -392,15 +406,15 @@ suspend fun saveAllData(
     }
 
 
-    suspend fun downloadAndImportFromCloud(remotePath: String, password: String?): Boolean = withContext(Dispatchers.IO) {
+    suspend fun downloadAndImportFromCloud(remotePath: Long?, password: String?): Boolean = withContext(Dispatchers.IO) {
         try {
             SyncStatusBus.update("正在下载云端数据…", SyncStatusType.Info)
 
             val tempFile = File.createTempFile("import", ".json")
-
-            val success = webDavManager.download(remotePath, tempFile)
+            val fileName = "backup/backup_${remotePath}.json"
+            val success = webDavManager.download(fileName, tempFile)
             if (!success) {
-                Log.e("AutoSync", "下载失败: $remotePath")
+                Log.e("AutoSync", "下载失败: $fileName")
                 SyncStatusBus.update("云端数据下载失败", SyncStatusType.Error)
                 tempFile.delete()
                 return@withContext false
@@ -410,8 +424,8 @@ suspend fun saveAllData(
 
             val content = tempFile.readText(Charsets.UTF_8)
             tempFile.delete()
-
-            val importResult = importDataWithKey(password, content)
+            Log.e("AutoSync", "云端时间戳: $remotePath")
+            val importResult = importDataWithKey(remotePath,password, content)
             Log.d("AutoSync", "导入结果: $importResult")
             if (importResult) {
                 SyncStatusBus.update("数据导入成功", SyncStatusType.Success)
@@ -439,29 +453,37 @@ suspend fun saveAllData(
                     val a111 = loginList.isNotEmpty()
                     Log.d("AutoSync", "Flow 触发，当前数据：$a111")
                     if (isFirstEmission) {
+                        Log.d("AutoSync", "跳过首次发射")
                         isFirstEmission = false
                         return@collectLatest // 跳过首次发射
                     }
+                    if (skipNextAutoBackup) {
+                        skipNextAutoBackup = false
+                        Log.d("AutoSync", "跳过这次自动备份（导入产生数据变更）")
+                        return@collectLatest
+                    }
+                    Log.d("AutoSync", "loginList 是否非空: ${loginList.isNotEmpty()}")
+
                     if (loginList.isNotEmpty()) {
                         try {
+                            val metadata = syncMetadataDao.getMetadata() // 默认 ID 是 "singleton"
+                            metadata?.syncStatus?.let { Log.d("AutoSync", "syncStatus$it") }
                             val key = settingsData.decryptKey.firstOrNull().takeUnless { it.isNullOrBlank() } ?: DEFAULT_KEY
                             Log.d("AutoSync", "Flow，秘钥：$key")
-//                            if (key.isNotBlank()) {
                                 val timestamp = System.currentTimeMillis()//.toString()
                                 val fileName = "backup/backup_$timestamp.json"
 
-                                uploadEncryptedDataToCloud(fileName, key)
 
+                                uploadEncryptedDataToCloud(fileName, key)
                                 // 可选：更新同步元数据
-                                val metadata = SyncMetadata(
+                                val updatedMetadata  = SyncMetadata(
                                     id = "singleton",
                                     lastLocalUpdate = timestamp,
                                     lastCloudUpdate = timestamp,
                                     lastSyncTime = timestamp,
                                     syncStatus = "Success"
                                 )
-                                syncMetadataDao.upsert(metadata)
-//                            }
+                                syncMetadataDao.upsert(updatedMetadata )
                         } catch (e: Exception) {
                             Log.e("AutoSync", "自动备份失败: ${e.message}")
                         }
@@ -564,17 +586,18 @@ suspend fun saveAllData(
                 Log.d("AutoSync", "云端比本地新 → 下载并导入")
 //                val key = settingsData.decryptKey.firstOrNull()
 //                if (!key.isNullOrBlank()) {
-                    val fileName = "backup/backup_${cloudTimestamp}.json"
-                    val success = downloadAndImportFromCloud(fileName, key)
+//                    val fileName = "backup/backup_${cloudTimestamp}.json"
+//                    val success = downloadAndImportFromCloud(fileName, key)
+                val success = downloadAndImportFromCloud(cloudTimestamp, key)
                     Log.d("AutoSync", "success")
                     if (success) {
-                        syncMetadataDao.upsert(
-                            metadata.copy(
-                                lastLocalUpdate = metadata.lastCloudUpdate,
-                                lastSyncTime = System.currentTimeMillis(),
-                                syncStatus = "Downloaded"
-                            )
-                        )
+//                        syncMetadataDao.upsert(
+//                            metadata.copy(
+//                                lastLocalUpdate = metadata.lastCloudUpdate,
+//                                lastSyncTime = System.currentTimeMillis(),
+//                                syncStatus = "Downloaded"
+//                            )
+//                        )
                         SyncStatusBus.update("导入成功", SyncStatusType.Success)
                     }
 //                }

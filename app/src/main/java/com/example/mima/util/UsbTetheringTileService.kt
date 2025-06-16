@@ -27,27 +27,27 @@ import android.util.Log
 import com.example.mima.service.MyForegroundService
 
 
-class UsbTetheringTileService : TileService() {
-
-    override fun onClick() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val serviceIntent = Intent(this, MyForegroundService::class.java)
-            startForegroundService(serviceIntent)
-            Timber.d("启动前台服务")
-        } else {
-            showToast("仅支持 Android 8.0 及以上")
-        }
-
-//        collapseStatusBar() // 收起状态栏
-    }
-//    private fun collapseStatusBar() {
-//        sendBroadcast(Intent(Intent.ACTION_CLOSE_SYSTEM_DIALOGS))
+//class UsbTetheringTileService : TileService() {
+//
+//    override fun onClick() {
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+//            val serviceIntent = Intent(this, MyForegroundService::class.java)
+//            startForegroundService(serviceIntent)
+//            Timber.d("启动前台服务")
+//        } else {
+//            showToast("仅支持 Android 8.0 及以上")
+//        }
+//
+////        collapseStatusBar() // 收起状态栏
 //    }
-
-    private fun showToast(message: String) {
-        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
-    }
-}
+////    private fun collapseStatusBar() {
+////        sendBroadcast(Intent(Intent.ACTION_CLOSE_SYSTEM_DIALOGS))
+////    }
+//
+//    private fun showToast(message: String) {
+//        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+//    }
+//}
 
 
 //class UsbTetheringTileService : TileService() {

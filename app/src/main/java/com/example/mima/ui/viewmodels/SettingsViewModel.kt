@@ -90,8 +90,10 @@ class SettingsViewModel @Inject constructor(
     suspend fun exportData(key: String): String? = dataManager.exportDataAsEncryptedString(key)
 
     suspend fun importData(key: String, encryptedData: String): Boolean {
-        return dataManager.importDataWithKey(key, encryptedData)
+        val currentTimestamp = System.currentTimeMillis()
+        return dataManager.importDataWithKey(currentTimestamp, key, encryptedData)
     }
+
 
 //    //TODO上传下载测试
 //    private val _result = MutableStateFlow("")

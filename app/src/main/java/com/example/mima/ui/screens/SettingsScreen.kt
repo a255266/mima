@@ -320,72 +320,72 @@ fun SettingsScreen(
         )
 
 
-        SectionTitle("权限")
-//        var checked by remember { mutableStateOf(false) }
-//        var checked1 by remember { mutableStateOf(false) }
-        var checked2 by remember { mutableStateOf(false) }
-        SettingsCard(darkTheme) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 7.dp)
-                    .padding(horizontal = 14.dp), // 左右各 16.dp 边距
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "前台服务",
-                    fontSize = 20.sp ,
-                    modifier = Modifier.weight(1f)
-                )
-                Switch(
-                    checked = foregroundServiceEnabled,
-                    onCheckedChange = {
-                        foregroundServiceEnabled = it
-                        viewModel.updateBoolean(WebDavKeys.FOREGROUND_SERVICE, it)
-                    }
-                )
-            }
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 7.dp)
-                    .padding(horizontal = 14.dp), // 左右各 16.dp 边距
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "修改系统设置",
-                    fontSize = 20.sp ,
-                    modifier = Modifier.weight(1f)
-                )
-                Switch(
-                    checked = allowSystemSettings,
-                    onCheckedChange = {
-                        allowSystemSettings = it
-                        viewModel.updateBoolean(WebDavKeys.ALLOW_SYSTEM_SETTINGS, it)
-                    }
-                )
-            }
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom  = 7.dp)
-                    .padding(horizontal = 14.dp), // 左右各 16.dp 边距
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "预留一个",
-                    fontSize = 20.sp ,
-                    modifier = Modifier.weight(1f)
-                )
-                Switch(
-                    checked = checked2,
-                    onCheckedChange = { checked2 = it }
-                )
-            }
-
-        }
+//        SectionTitle("权限")
+////        var checked by remember { mutableStateOf(false) }
+////        var checked1 by remember { mutableStateOf(false) }
+//        var checked2 by remember { mutableStateOf(false) }
+//        SettingsCard(darkTheme) {
+//            Row(
+//                modifier = Modifier
+//                    .fillMaxWidth()
+//                    .padding(top = 7.dp)
+//                    .padding(horizontal = 14.dp), // 左右各 16.dp 边距
+//                verticalAlignment = Alignment.CenterVertically
+//            ) {
+//                Text(
+//                    text = "前台服务",
+//                    fontSize = 20.sp ,
+//                    modifier = Modifier.weight(1f)
+//                )
+//                Switch(
+//                    checked = foregroundServiceEnabled,
+//                    onCheckedChange = {
+//                        foregroundServiceEnabled = it
+//                        viewModel.updateBoolean(WebDavKeys.FOREGROUND_SERVICE, it)
+//                    }
+//                )
+//            }
+//
+//            Row(
+//                modifier = Modifier
+//                    .fillMaxWidth()
+//                    .padding(vertical = 7.dp)
+//                    .padding(horizontal = 14.dp), // 左右各 16.dp 边距
+//                verticalAlignment = Alignment.CenterVertically
+//            ) {
+//                Text(
+//                    text = "修改系统设置",
+//                    fontSize = 20.sp ,
+//                    modifier = Modifier.weight(1f)
+//                )
+//                Switch(
+//                    checked = allowSystemSettings,
+//                    onCheckedChange = {
+//                        allowSystemSettings = it
+//                        viewModel.updateBoolean(WebDavKeys.ALLOW_SYSTEM_SETTINGS, it)
+//                    }
+//                )
+//            }
+//
+//            Row(
+//                modifier = Modifier
+//                    .fillMaxWidth()
+//                    .padding(bottom  = 7.dp)
+//                    .padding(horizontal = 14.dp), // 左右各 16.dp 边距
+//                verticalAlignment = Alignment.CenterVertically
+//            ) {
+//                Text(
+//                    text = "预留一个",
+//                    fontSize = 20.sp ,
+//                    modifier = Modifier.weight(1f)
+//                )
+//                Switch(
+//                    checked = checked2,
+//                    onCheckedChange = { checked2 = it }
+//                )
+//            }
+//
+//        }
 
         //webdav上传下载测试
 //        val result by viewModel.result.collectAsState()

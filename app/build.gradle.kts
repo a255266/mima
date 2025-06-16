@@ -23,8 +23,8 @@ android {
         applicationId = "com.example.mima"
         minSdk = 29
         targetSdk = 36
-        versionCode = 8
-        versionName = "2.1.9"
+        versionCode = 9
+        versionName = "2.2.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -53,9 +53,9 @@ android {
         aidl = true
     }
 
-    composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.15" // 重点指定 Compose Compiler 版本
-    }
+//    composeOptions {
+//        kotlinCompilerExtensionVersion = "1.5.15" // 重点指定 Compose Compiler 版本
+//    }
 
     sourceSets {
         getByName("main") {

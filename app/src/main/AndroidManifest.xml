@@ -43,23 +43,23 @@
 
 
         <!-- TileService：用于 Quick Settings 磁贴 -->
-        <service
-            android:name=".util.UsbTetheringTileService"
-            android:icon="@drawable/ic_usb"
-            android:label="@string/usb_tether_tile_label"
-            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.service.quicksettings.action.QS_TILE" />
-            </intent-filter>
-        </service>
+<!--        <service-->
+<!--            android:name=".util.UsbTetheringTileService"-->
+<!--            android:icon="@drawable/ic_usb"-->
+<!--            android:label="@string/usb_tether_tile_label"-->
+<!--            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE"-->
+<!--            android:exported="true">-->
+<!--            <intent-filter>-->
+<!--                <action android:name="android.service.quicksettings.action.QS_TILE" />-->
+<!--            </intent-filter>-->
+<!--        </service>-->
 
         <!-- MyForegroundService：前台服务，才需要指定 foregroundServiceType -->
-        <service
-            android:name=".service.MyForegroundService"
-            android:enabled="true"
-            android:exported="false"
-            android:foregroundServiceType="connectedDevice" />
+<!--        <service-->
+<!--            android:name=".service.MyForegroundService"-->
+<!--            android:enabled="true"-->
+<!--            android:exported="false"-->
+<!--            android:foregroundServiceType="connectedDevice" />-->
 
 
     </application>

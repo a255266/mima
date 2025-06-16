@@ -29,6 +29,8 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.Job
 
 @OptIn(
     kotlinx.coroutines.FlowPreview::class,
@@ -49,22 +51,46 @@ class HomeViewModel @Inject constructor(
     val isSearchActive: StateFlow<Boolean> = _isSearchActive
 
 
+    private var configListenerJob: Job? = null
+
     init {
         viewModelScope.launch {
-            settingsData.webDavSettings
-                .debounce(2000) // 等1秒没变动才继续执行
-                .distinctUntilChanged() // 配置必须真正变化才触发
-                .collectLatest { config ->
-                    if (config.server.isNotBlank() && config.account.isNotBlank() && config.password.isNotBlank()) {
+            combine(
+                settingsData.server,
+                settingsData.account,
+                settingsData.password
+            ) { server, account, password ->
+                Triple(server, account, password)
+            }
+                .debounce(2500)
+                .distinctUntilChanged()
+                .collectLatest { (server, account, password) ->
+
+                    if (server.isNotBlank() && account.isNotBlank() && password.isNotBlank()) {
                         Log.d("AutoSync", "配置有效，启动同步")
-                        dataManager.startAutoBackupOnDatabaseChange(viewModelScope)
+
+                        if (configListenerJob?.isActive == true) {
+                            Log.d("AutoSync", "已有监听协程正在运行，取消旧的监听")
+                            configListenerJob?.cancel()
+                        }
+                        // 如果已有监听在运行，先取消
+                        configListenerJob?.cancel()
+                        configListenerJob = viewModelScope.launch {
+                            dataManager.startAutoBackupOnDatabaseChange(this)
+                        }
+
                         dataManager.performSyncIfNeeded()
                     } else {
                         Log.d("AutoSync", "配置不完整，不启动同步")
+                        configListenerJob?.cancel()
+                        configListenerJob = null
                     }
                 }
         }
     }
+
+
+
 
 
 //    init {

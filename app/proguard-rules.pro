@@ -40,3 +40,4 @@
     <fields>;
     <methods>;
 }
+-keep class com.example.mima.data.LoginData { *; }
