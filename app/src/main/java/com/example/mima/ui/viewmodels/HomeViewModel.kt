@@ -24,9 +24,11 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import androidx.paging.map
+import com.example.mima.data.SettingsData
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.collectLatest
 
 @OptIn(
     kotlinx.coroutines.FlowPreview::class,
@@ -36,6 +38,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 class HomeViewModel @Inject constructor(
     private val dataManager: DataManager,
     private val vibrationHelper: VibrationHelper,
+    private val settingsData: SettingsData
 ) : ViewModel() {
 
     // 搜索关键字（与 Paging Flow 绑定）
@@ -45,13 +48,32 @@ class HomeViewModel @Inject constructor(
     private val _isSearchActive = MutableStateFlow(false)
     val isSearchActive: StateFlow<Boolean> = _isSearchActive
 
+
     init {
-        dataManager.startAutoBackupOnDatabaseChange(viewModelScope)
         viewModelScope.launch {
-            dataManager.performSyncIfNeeded()
+            settingsData.webDavSettings
+                .debounce(2000) // 等1秒没变动才继续执行
+                .distinctUntilChanged() // 配置必须真正变化才触发
+                .collectLatest { config ->
+                    if (config.server.isNotBlank() && config.account.isNotBlank() && config.password.isNotBlank()) {
+                        Log.d("AutoSync", "配置有效，启动同步")
+                        dataManager.startAutoBackupOnDatabaseChange(viewModelScope)
+                        dataManager.performSyncIfNeeded()
+                    } else {
+                        Log.d("AutoSync", "配置不完整，不启动同步")
+                    }
+                }
         }
-        Log.d("AutoSync", "触发监控")
     }
+
+
+//    init {
+//        dataManager.startAutoBackupOnDatabaseChange(viewModelScope)
+//        viewModelScope.launch {
+//            dataManager.performSyncIfNeeded()
+//        }
+//        Log.d("AutoSync", "触发监控")
+//    }
 
 
     private val _refreshFinishedEvent = MutableSharedFlow<Unit>(extraBufferCapacity = 1)

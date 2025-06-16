@@ -23,8 +23,8 @@ android {
         applicationId = "com.example.mima"
         minSdk = 29
         targetSdk = 36
-        versionCode = 7
-        versionName = "2.1.8"
+        versionCode = 8
+        versionName = "2.1.9"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -32,8 +32,8 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false // 启用 R8 / ProGuard
-            isShrinkResources = false // 启用资源压缩，移除未使用资源
+            isMinifyEnabled = true // 启用 R8 / ProGuard
+            isShrinkResources = true // 启用资源压缩，移除未使用资源
 //            isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),

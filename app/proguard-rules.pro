@@ -28,3 +28,15 @@
 -dontwarn org.openjsse.javax.net.ssl.SSLParameters
 -dontwarn org.openjsse.javax.net.ssl.SSLSocket
 -dontwarn org.openjsse.net.ssl.OpenJSSE
+# 保留 DataStore PreferencesProto protobuf 相关类和字段方法，避免混淆
+-keep class androidx.datastore.preferences.** { *; }
+-keepclassmembers class androidx.datastore.preferences.** {
+    <fields>;
+    <methods>;
+}
+
+# 保留所有 protobuf GeneratedMessageLite 子类的字段和方法名
+-keepclassmembers class * extends com.google.protobuf.GeneratedMessageLite {
+    <fields>;
+    <methods>;
+}
