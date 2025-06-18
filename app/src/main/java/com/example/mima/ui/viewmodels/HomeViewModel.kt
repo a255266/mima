@@ -62,7 +62,7 @@ class HomeViewModel @Inject constructor(
             ) { server, account, password ->
                 Triple(server, account, password)
             }
-                .debounce(2500)
+                .debounce(500)
                 .distinctUntilChanged()
                 .collectLatest { (server, account, password) ->
 
