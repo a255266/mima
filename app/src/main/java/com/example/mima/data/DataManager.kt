@@ -447,7 +447,7 @@ suspend fun saveAllData(
             var isFirstEmission = true
             Log.d("AutoSync", "自动备份")
             loginDao.getAllFlow()
-                .debounce(2000) // 防止频繁变动（例如用户快速连续输入）
+                .debounce(1000) // 防止频繁变动（例如用户快速连续输入）
                 .distinctUntilChanged()
                 .collectLatest { loginList ->
                     val a111 = loginList.isNotEmpty()

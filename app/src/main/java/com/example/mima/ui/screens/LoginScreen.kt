@@ -298,7 +298,7 @@ fun LoginScreen(
 
                                 else -> KeyboardOptions.Default
                             },
-                            singleLine = fieldName != "备注",
+                            singleLine = fixedFields.containsKey(fieldName) && fieldName != "备注",
                             trailingIcon = {
                                 val context = LocalContext.current
                                 val clipboardManager = LocalClipboardManager.current
